@@ -1,3 +1,20 @@
+/**
+ * Copyright (C) 2012 Jacob Scott <jascottytechie@gmail.com>
+ * Description: ( TODO )
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package me.jascotty2.countdownsync.client;
 
 /**
@@ -12,6 +29,8 @@ import java.util.logging.Logger;
 
 public class ChatClient extends Observable implements Runnable {
 
+	static final boolean DEBUG = false;
+	
 	private Socket socket = null;
 	private Thread sendThread = null;
 	private DataOutputStream streamOut = null;
@@ -135,7 +154,7 @@ public class ChatClient extends Observable implements Runnable {
 			}
 			return;
 		}
-		System.out.println("Message Recieved: " + msg);
+		if (DEBUG) System.out.println("Message Recieved: " + msg);
 		notifyObservers(msg);
 	}
 

@@ -1,3 +1,20 @@
+/**
+ * Copyright (C) 2012 Jacob Scott <jascottytechie@gmail.com>
+ * Description: ( TODO )
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package me.jascotty2.countdownsync.server;
 
 import java.util.HashMap;
@@ -11,10 +28,12 @@ public class Responder implements Observer {
 
 	protected final ChatServer server;
 	protected final Map<Integer, ClientData> list = new HashMap<Integer, ClientData>();
+	protected PingThread pinger = new PingThread(this);
 
 	public Responder(ChatServer serv) {
 		server = serv;
 		server.addObserver(this);
+		pinger.start();
 	}
 
 	public void run() {
@@ -45,7 +64,11 @@ public class Responder implements Observer {
 			String action = msg.contains(" ") ? msg.substring(0, msg.indexOf(" ")) : msg;
 			msg = msg.contains(" ") ? msg.substring(msg.indexOf(" ") + 1) : "";
 
-			if (action.equals("bye")) {
+			if (action.equals("start")) {
+				sendStart(id, msg.isEmpty() ? 5 : Integer.parseInt(msg));
+			} else if (action.equals("pong")) {
+				server.sendMessage("ping " + pinger.getPing(), id);
+			} else if (action.equals("bye")) {
 				if (list.containsKey(id)) {
 					server.broadcastMessage("del " + list.get(id).nick);
 				}
@@ -82,8 +105,6 @@ public class Responder implements Observer {
 					c.leader = msg;
 				}
 				sendUpdate(c);
-			} else if (action.equals("start")) {
-				sendStart(id, msg.isEmpty() ? 5 : Integer.parseInt(msg));
 			} else if (action.equals("ready")) {
 				ClientData c = list.get(id);
 				if (c == null) {
@@ -97,6 +118,27 @@ public class Responder implements Observer {
 				}
 			} else if (action.equals("refresh")) {
 				sendList(id);
+			} else if (action.equals("search")) {
+				ClientData c = list.get(id);
+				if (c == null) {
+					Logger.getAnonymousLogger().log(Level.WARNING, "Error: search command from unregistered client", new Exception());
+					return;
+				}
+				if(!c.isLeader) {
+					server.sendMessage("nosearch", id);
+				} else {
+					for (Map.Entry<Integer, ClientData> e : list.entrySet()) {
+						if(e.getValue().nick.equalsIgnoreCase(msg)) {
+							if (!e.getValue().isLeader && e.getValue().leader.equalsIgnoreCase(c.nick)) {
+								server.sendMessage("search", e.getKey());
+							} else {
+								server.sendMessage("nosearch", id);
+							}
+							return;
+						}
+					}
+					server.sendMessage("nosearch", id);
+				}
 			}
 		} catch (Throwable t) {
 			Logger.getAnonymousLogger().log(Level.SEVERE, "Unexpected Error: " + t.getMessage(), t);

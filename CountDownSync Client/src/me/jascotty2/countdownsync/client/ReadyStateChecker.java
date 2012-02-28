@@ -1,3 +1,20 @@
+/**
+ * Copyright (C) 2012 Jacob Scott <jascottytechie@gmail.com>
+ * Description: ( TODO )
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package me.jascotty2.countdownsync.client;
 
 import java.awt.Point;
@@ -8,7 +25,7 @@ public class ReadyStateChecker implements Runnable {
 
 	Thread thread = null;
 	SyncClient client;
-	boolean is_ready = false, found = false;
+	protected boolean is_ready = false, found = false;
 
 	public ReadyStateChecker(SyncClient client) {
 		this.client = client;
@@ -31,6 +48,20 @@ public class ReadyStateChecker implements Runnable {
 			}
 			thread = null;
 		}
+	}
+	
+	protected void extensiveScan() {
+		Thread tick = new Thread() {
+
+			@Override
+			public void run() {
+				java.awt.Point pt = FindButton.findPoint(true);
+				if(pt.x >= 0) {
+					client.sendReady(is_ready = true);
+				}
+			}
+		};
+		tick.start();
 	}
 
 	@Override

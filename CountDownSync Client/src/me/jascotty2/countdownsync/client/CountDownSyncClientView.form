@@ -143,6 +143,7 @@
                 <Property name="name" type="java.lang.String" value="lstClients" noResource="true"/>
               </Properties>
               <Events>
+                <EventHandler event="mouseClicked" listener="java.awt.event.MouseListener" parameters="java.awt.event.MouseEvent" handler="lstClientsMouseClicked"/>
                 <EventHandler event="valueChanged" listener="javax.swing.event.ListSelectionListener" parameters="javax.swing.event.ListSelectionEvent" handler="lstClientsValueChanged"/>
               </Events>
             </Component>
@@ -177,7 +178,6 @@
             </Property>
             <Property name="font" type="java.awt.Font" resourceKey="btnStart.font"/>
             <Property name="text" type="java.lang.String" resourceKey="btnStart.text"/>
-            <Property name="enabled" type="boolean" value="false"/>
             <Property name="name" type="java.lang.String" value="btnStart" noResource="true"/>
           </Properties>
         </Component>
@@ -208,7 +208,6 @@
                   <action class="me.jascotty2.countdownsync.client.CountDownSyncClientView" id="disconnect" methodName="disconnect"/>
                 </Property>
                 <Property name="text" type="java.lang.String" resourceKey="mnuDisconnect.text"/>
-                <Property name="enabled" type="boolean" value="false"/>
                 <Property name="name" type="java.lang.String" value="mnuDisconnect" noResource="true"/>
               </Properties>
             </MenuItem>
@@ -217,11 +216,7 @@
                 <Property name="action" type="javax.swing.Action" editor="org.netbeans.modules.swingapp.ActionEditor">
                   <action class="me.jascotty2.countdownsync.client.CountDownSyncClientView" id="requestUpdate" methodName="requestUpdate"/>
                 </Property>
-                <Property name="accelerator" type="javax.swing.KeyStroke" editor="org.netbeans.modules.form.editors.KeyStrokeEditor">
-                  <KeyStroke key="F5"/>
-                </Property>
                 <Property name="text" type="java.lang.String" resourceKey="mnuRefresh.text"/>
-                <Property name="enabled" type="boolean" value="false"/>
                 <Property name="name" type="java.lang.String" value="mnuRefresh" noResource="true"/>
               </Properties>
             </MenuItem>
@@ -315,6 +310,15 @@
           </Properties>
         </Component>
       </SubComponents>
+    </Container>
+    <Container class="javax.swing.JPopupMenu" name="clientPopupMenu">
+      <Properties>
+        <Property name="name" type="java.lang.String" value="clientPopupMenu" noResource="true"/>
+      </Properties>
+
+      <Layout class="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout">
+        <Property name="useNullLayout" type="boolean" value="true"/>
+      </Layout>
     </Container>
   </NonVisualComponents>
   <Properties>

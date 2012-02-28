@@ -1,3 +1,20 @@
+/**
+ * Copyright (C) 2012 Jacob Scott <jascottytechie@gmail.com>
+ * Description: ( TODO )
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package me.jascotty2.countdownsync.client;
 
 import java.io.IOException;
@@ -11,6 +28,7 @@ public class SyncClient implements Observer {
 	protected final ChatClient client;
 	CountDownSyncClientView app;
 	boolean is_ready = false;
+	private int ping;
 	String leader = "";
 
 	public SyncClient(ChatClient client, CountDownSyncClientView callback) throws IOException {
@@ -38,7 +56,16 @@ public class SyncClient implements Observer {
 			String action = msg.contains(" ") ? msg.substring(0, msg.indexOf(" ")) : msg;
 			msg = msg.contains(" ") ? msg.substring(msg.indexOf(" ") + 1) : "";
 
-			if (action.equals("reconnect")) {
+			if (action.equals("start")) {
+				app.startCount(msg.isEmpty() ? 5 : Integer.parseInt(msg));
+			} else if (action.equals("ping")) {
+				if(msg.isEmpty()) {
+					client.sendMessage("pong");
+				} else {
+					ping = Integer.parseInt(msg);
+					app.setStatus("Connected. (" + ping + "ms)");
+				}
+			} else if (action.equals("reconnect")) {
 				app.disconnect(true);
 			} else if (action.equals("disconnect")) {
 				app.disconnect(false);
@@ -68,12 +95,20 @@ public class SyncClient implements Observer {
 			} else if (action.equals("del")) {
 				app.clients.removeClient(msg);
 				app.updateList();
-			} else if (action.equals("start")) {
-				app.startCount(msg.isEmpty() ? 5 : Integer.parseInt(msg));
+			} else if(action.equals("search")) {
+				if(!app.checker.found) {
+					app.checker.extensiveScan();
+				}
+			} else if(action.equals("nosearch")) {
+				app.noRequestClientUpdate();
 			}
 		} catch (Exception e) {
 			Logger.getAnonymousLogger().log(Level.SEVERE, "Unexpected Exception: " + e.getMessage(), e);
 		}
+	}
+	
+	public int getPing() {
+		return ping;
 	}
 
 	public void setNickname(String nick) {
@@ -87,6 +122,10 @@ public class SyncClient implements Observer {
 
 	public void sendStart() {
 		client.sendMessage("start");
+	}
+	
+	public void sendForceUpdate(String nick) {
+		client.sendMessage("search " + nick);
 	}
 	
 	public void sendReady(boolean ready) {

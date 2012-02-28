@@ -1,5 +1,19 @@
-/*
- * CountDownSyncClientView.java
+/**
+ * Copyright (C) 2012 Jacob Scott <jascottytechie@gmail.com>
+ * Description: ( TODO )
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package me.jascotty2.countdownsync.client;
 
@@ -16,6 +30,7 @@ import org.jdesktop.application.FrameView;
 import org.jdesktop.application.TaskMonitor;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.FileOutputStream;
 import javax.imageio.ImageIO;
@@ -33,7 +48,7 @@ import javax.swing.text.PlainDocument;
  */
 public class CountDownSyncClientView extends FrameView {
 
-	static final String VERSION = "1.0.2";
+	static final String VERSION = "1.1.0";
 	static final int MAXNAMELEN = 15;
 	SyncClient client;
 	Settings conf = new Settings();
@@ -72,7 +87,14 @@ public class CountDownSyncClientView extends FrameView {
 //		btnRefresh.setSize(15, 15);
 //		btnRefresh.setLocation(50, 50);
 //		super.getFrame().add(btnRefresh);
-
+		
+		javax.swing.JButton btnForceSearch = new javax.swing.JButton();
+		btnForceSearch.setAction(org.jdesktop.application.Application.getInstance(
+				me.jascotty2.countdownsync.client.CountDownSyncClientApp.class).
+				getContext().getActionMap(CountDownSyncClientView.class, this).get("requestClientUpdate"));
+		btnForceSearch.setText("Search for Button");
+		clientPopupMenu.add(btnForceSearch);
+		
 		// status bar initialization - message timeout, idle icon and busy animation, etc
 		ResourceMap resourceMap = getResourceMap();
 		int messageTimeout = resourceMap.getInteger("StatusBar.messageTimeout");
@@ -258,6 +280,16 @@ public class CountDownSyncClientView extends FrameView {
 		client.requestUpdate();
 	}
 
+	@Action
+	public void requestClientUpdate() {
+		
+	}
+	
+	public void noRequestClientUpdate() {
+		JOptionPane.showMessageDialog(this.getFrame(), "can only run that command on a follower client",
+					"Disallowed", JOptionPane.ERROR_MESSAGE);
+	}
+	
 	public void updateList() {
 		lstClients.removeAll();
 		lstClients.setListData(clients.getList());
@@ -359,6 +391,7 @@ public class CountDownSyncClientView extends FrameView {
         statusPanel = new javax.swing.JPanel();
         lblStat = new javax.swing.JLabel();
         lblProg = new javax.swing.JLabel();
+        clientPopupMenu = new javax.swing.JPopupMenu();
 
         mainPanel.setName("mainPanel"); // NOI18N
 
@@ -388,6 +421,11 @@ public class CountDownSyncClientView extends FrameView {
 
         lstClients.setEnabled(false);
         lstClients.setName("lstClients"); // NOI18N
+        lstClients.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                lstClientsMouseClicked(evt);
+            }
+        });
         lstClients.addListSelectionListener(new javax.swing.event.ListSelectionListener() {
             public void valueChanged(javax.swing.event.ListSelectionEvent evt) {
                 lstClientsValueChanged(evt);
@@ -409,7 +447,6 @@ public class CountDownSyncClientView extends FrameView {
         btnStart.setAction(actionMap.get("sendStart")); // NOI18N
         btnStart.setFont(resourceMap.getFont("btnStart.font")); // NOI18N
         btnStart.setText(resourceMap.getString("btnStart.text")); // NOI18N
-        btnStart.setEnabled(false);
         btnStart.setName("btnStart"); // NOI18N
 
         javax.swing.GroupLayout mainPanelLayout = new javax.swing.GroupLayout(mainPanel);
@@ -476,14 +513,11 @@ public class CountDownSyncClientView extends FrameView {
 
         mnuDisconnect.setAction(actionMap.get("disconnect")); // NOI18N
         mnuDisconnect.setText(resourceMap.getString("mnuDisconnect.text")); // NOI18N
-        mnuDisconnect.setEnabled(false);
         mnuDisconnect.setName("mnuDisconnect"); // NOI18N
         fileMenu.add(mnuDisconnect);
 
         mnuRefresh.setAction(actionMap.get("requestUpdate")); // NOI18N
-        mnuRefresh.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_F5, 0));
         mnuRefresh.setText(resourceMap.getString("mnuRefresh.text")); // NOI18N
-        mnuRefresh.setEnabled(false);
         mnuRefresh.setName("mnuRefresh"); // NOI18N
         fileMenu.add(mnuRefresh);
 
@@ -531,6 +565,8 @@ public class CountDownSyncClientView extends FrameView {
                 .addContainerGap())
         );
 
+        clientPopupMenu.setName("clientPopupMenu"); // NOI18N
+
         setComponent(mainPanel);
         setMenuBar(menuBar);
         setStatusBar(statusPanel);
@@ -539,10 +575,19 @@ public class CountDownSyncClientView extends FrameView {
 	private void lstClientsValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_lstClientsValueChanged
 		btnSelect.setEnabled(true);
 	}//GEN-LAST:event_lstClientsValueChanged
+
+	private void lstClientsMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_lstClientsMouseClicked
+		if(evt.getButton() == MouseEvent.BUTTON3) {
+			clientPopupMenu.show(lstClients, evt.getX(), evt.getY());
+			
+		}
+	}//GEN-LAST:event_lstClientsMouseClicked
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnConnect;
     private javax.swing.JButton btnSelect;
     private javax.swing.JButton btnStart;
+    private javax.swing.JPopupMenu clientPopupMenu;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JLabel lblLeader;
     private javax.swing.JLabel lblLeaderName;
@@ -566,5 +611,4 @@ public class CountDownSyncClientView extends FrameView {
 	private final Icon[] busyIcons = new Icon[15];
 	private int busyIconIndex = 0;
 	private JDialog aboutBox;
-	private javax.swing.JButton btnRefresh;
 }
