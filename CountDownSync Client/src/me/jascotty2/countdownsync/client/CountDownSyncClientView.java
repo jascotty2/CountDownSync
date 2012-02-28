@@ -282,7 +282,11 @@ public class CountDownSyncClientView extends FrameView {
 
 	@Action
 	public void requestClientUpdate() {
-		
+		clientPopupMenu.setVisible(false);
+		int i = lstClients.getSelectedIndex();
+		if (i >= 0) {
+			client.sendForceUpdate(clients.getClient(i).nick);
+		}
 	}
 	
 	public void noRequestClientUpdate() {
@@ -579,7 +583,6 @@ public class CountDownSyncClientView extends FrameView {
 	private void lstClientsMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_lstClientsMouseClicked
 		if(evt.getButton() == MouseEvent.BUTTON3) {
 			clientPopupMenu.show(lstClients, evt.getX(), evt.getY());
-			
 		}
 	}//GEN-LAST:event_lstClientsMouseClicked
 
