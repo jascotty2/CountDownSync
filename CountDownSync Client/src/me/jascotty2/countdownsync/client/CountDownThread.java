@@ -48,17 +48,16 @@ public class CountDownThread extends Thread {
 	@Override
 	public void run() {
 		int preload = app.client.getPing();
-		if(preload > 998) preload = 998;
+		if (preload > 1000) preload = 1000;
 		try {
+			Thread.sleep(1000 - preload);
 			for (int i = sec; i > 0; --i) {
 				app.setStatus("starting in " + i + " seconds..");
 				playThreadedTick();
 				if (i == 1) {
 					FindButton.move_mouse();
-					Thread.sleep(998 - preload);
-				} else {
-					Thread.sleep(998);
 				}
+				Thread.sleep(998);
 			}
 			playThreadedClickSound();
 			app.click();

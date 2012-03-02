@@ -59,11 +59,13 @@ public class SyncClient implements Observer {
 			if (action.equals("start")) {
 				app.startCount(msg.isEmpty() ? 5 : Integer.parseInt(msg));
 			} else if (action.equals("ping")) {
-				if(msg.isEmpty()) {
+				if (msg.isEmpty()) {
 					client.sendMessage("pong");
 				} else {
-					ping = Integer.parseInt(msg);
-					app.setStatus("Connected. (" + ping + "ms)");
+					ping = Integer.parseInt(msg) / 2;
+					if (!app.in_countdown) {
+						app.setStatus("Connected. (" + ping + "ms)");
+					}
 				}
 			} else if (action.equals("reconnect")) {
 				app.disconnect(true);
@@ -77,10 +79,11 @@ public class SyncClient implements Observer {
 				app.nick(false);
 			} else if (action.equals("hello")) {
 				app.nick(true);
-				if(is_ready) {
+				client.sendMessage("ver " + CountDownSyncClientView.VERSION);
+				if (is_ready) {
 					sendReady(true);
 				}
-				if(!leader.isEmpty()) {
+				if (!leader.isEmpty()) {
 					setLeader(leader);
 				}
 			} else if (action.equals("refresh")) {
@@ -95,18 +98,20 @@ public class SyncClient implements Observer {
 			} else if (action.equals("del")) {
 				app.clients.removeClient(msg);
 				app.updateList();
-			} else if(action.equals("search")) {
-				if(!app.checker.found) {
-					app.checker.extensiveScan();
-				}
-			} else if(action.equals("nosearch")) {
-				app.noRequestClientUpdate();
 			}
+//			else if(action.equals("search")) {
+//				if(!app.checker.found) {
+//					app.checker.extensiveScan();
+//				}
+//			} 
+//			else if(action.equals("nosearch")) {
+//				app.noRequestClientUpdate();
+//			}
 		} catch (Exception e) {
 			Logger.getAnonymousLogger().log(Level.SEVERE, "Unexpected Exception: " + e.getMessage(), e);
 		}
 	}
-	
+
 	public int getPing() {
 		return ping;
 	}
@@ -123,16 +128,17 @@ public class SyncClient implements Observer {
 	public void sendStart() {
 		client.sendMessage("start");
 	}
-	
+
 	public void sendForceUpdate(String nick) {
 		client.sendMessage("search " + nick);
 	}
-	
+
 	public void sendReady(boolean ready) {
 		is_ready = ready;
 		client.sendMessage("ready " + ready);
+		System.out.println((ready ? "ready :)" : "not ready"));
 	}
-	
+
 	public void requestUpdate() {
 		client.sendMessage("refresh");
 	}

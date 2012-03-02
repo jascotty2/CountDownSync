@@ -100,6 +100,9 @@
               <ComponentRef name="txtNick"/>
             </Property>
           </Properties>
+          <Events>
+            <EventHandler event="mouseClicked" listener="java.awt.event.MouseListener" parameters="java.awt.event.MouseEvent" handler="txtServerMouseClicked"/>
+          </Events>
         </Component>
         <Component class="javax.swing.JTextField" name="txtNick">
           <Properties>
@@ -109,6 +112,9 @@
               <ComponentRef name="btnConnect"/>
             </Property>
           </Properties>
+          <Events>
+            <EventHandler event="mouseClicked" listener="java.awt.event.MouseListener" parameters="java.awt.event.MouseEvent" handler="txtNickMouseClicked"/>
+          </Events>
         </Component>
         <Component class="javax.swing.JButton" name="btnConnect">
           <Properties>
@@ -234,6 +240,25 @@
             </MenuItem>
           </SubComponents>
         </Menu>
+        <Menu class="javax.swing.JMenu" name="mnuOptions">
+          <Properties>
+            <Property name="text" type="java.lang.String" resourceKey="mnuOptions.text"/>
+            <Property name="toolTipText" type="java.lang.String" resourceKey="mnuOptions.toolTipText"/>
+            <Property name="name" type="java.lang.String" value="mnuOptions" noResource="true"/>
+          </Properties>
+          <SubComponents>
+            <MenuItem class="javax.swing.JCheckBoxMenuItem" name="mnuChkWorkaround">
+              <Properties>
+                <Property name="action" type="javax.swing.Action" editor="org.netbeans.modules.swingapp.ActionEditor">
+                  <action class="me.jascotty2.countdownsync.client.CountDownSyncClientView" id="chkWorkaroundChanged" methodName="chkWorkaroundChanged"/>
+                </Property>
+                <Property name="text" type="java.lang.String" resourceKey="mnuChkWorkaround.text"/>
+                <Property name="toolTipText" type="java.lang.String" resourceKey="mnuChkWorkaround.toolTipText"/>
+                <Property name="name" type="java.lang.String" value="mnuChkWorkaround" noResource="true"/>
+              </Properties>
+            </MenuItem>
+          </SubComponents>
+        </Menu>
         <Menu class="javax.swing.JMenu" name="helpMenu">
           <Properties>
             <Property name="text" type="java.lang.String" resourceKey="helpMenu.text"/>
@@ -319,6 +344,76 @@
       <Layout class="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout">
         <Property name="useNullLayout" type="boolean" value="true"/>
       </Layout>
+      <SubComponents>
+        <MenuItem class="javax.swing.JMenuItem" name="mnuSelect2">
+          <Properties>
+            <Property name="action" type="javax.swing.Action" editor="org.netbeans.modules.swingapp.ActionEditor">
+              <action class="me.jascotty2.countdownsync.client.CountDownSyncClientView" id="selectCurrent" methodName="selectCurrent"/>
+            </Property>
+            <Property name="text" type="java.lang.String" resourceKey="mnuSelect2.text"/>
+            <Property name="name" type="java.lang.String" value="mnuSelect2" noResource="true"/>
+          </Properties>
+        </MenuItem>
+        <MenuItem class="javax.swing.JMenuItem" name="mnuSelectSelf">
+          <Properties>
+            <Property name="action" type="javax.swing.Action" editor="org.netbeans.modules.swingapp.ActionEditor">
+              <action class="me.jascotty2.countdownsync.client.CountDownSyncClientView" id="selectSelf" methodName="selectSelf"/>
+            </Property>
+            <Property name="text" type="java.lang.String" resourceKey="mnuSelectSelf.text"/>
+            <Property name="name" type="java.lang.String" value="mnuSelectSelf" noResource="true"/>
+          </Properties>
+        </MenuItem>
+        <MenuItem class="javax.swing.JMenuItem" name="mnuCls">
+          <Properties>
+            <Property name="action" type="javax.swing.Action" editor="org.netbeans.modules.swingapp.ActionEditor">
+              <action class="me.jascotty2.countdownsync.client.CountDownSyncClientView" id="clearSelect" methodName="clearSelect"/>
+            </Property>
+            <Property name="text" type="java.lang.String" resourceKey="mnuCls.text"/>
+            <Property name="name" type="java.lang.String" value="mnuCls" noResource="true"/>
+          </Properties>
+        </MenuItem>
+        <MenuItem class="javax.swing.JMenuItem" name="mnuRedraw">
+          <Properties>
+            <Property name="action" type="javax.swing.Action" editor="org.netbeans.modules.swingapp.ActionEditor">
+              <action class="me.jascotty2.countdownsync.client.CountDownSyncClientView" id="updateList" methodName="updateList"/>
+            </Property>
+            <Property name="text" type="java.lang.String" resourceKey="mnuRedraw.text"/>
+            <Property name="name" type="java.lang.String" value="mnuRedraw" noResource="true"/>
+          </Properties>
+        </MenuItem>
+      </SubComponents>
+    </Container>
+    <Container class="javax.swing.JPopupMenu" name="copyPastePopup">
+      <Properties>
+        <Property name="name" type="java.lang.String" value="copyPastePopup" noResource="true"/>
+      </Properties>
+      <AuxValues>
+        <AuxValue name="JavaCodeGenerator_SerializeTo" type="java.lang.String" value="CountDownSyncClientView_copyPastePopup"/>
+      </AuxValues>
+
+      <Layout class="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout">
+        <Property name="useNullLayout" type="boolean" value="true"/>
+      </Layout>
+      <SubComponents>
+        <MenuItem class="javax.swing.JMenuItem" name="mnuCopy">
+          <Properties>
+            <Property name="action" type="javax.swing.Action" editor="org.netbeans.modules.swingapp.ActionEditor">
+              <action class="me.jascotty2.countdownsync.client.CountDownSyncClientView" id="copy" methodName="copy"/>
+            </Property>
+            <Property name="text" type="java.lang.String" resourceKey="mnuCopy.text"/>
+            <Property name="name" type="java.lang.String" value="mnuCopy" noResource="true"/>
+          </Properties>
+        </MenuItem>
+        <MenuItem class="javax.swing.JMenuItem" name="mnuPaste">
+          <Properties>
+            <Property name="action" type="javax.swing.Action" editor="org.netbeans.modules.swingapp.ActionEditor">
+              <action class="me.jascotty2.countdownsync.client.CountDownSyncClientView" id="paste" methodName="paste"/>
+            </Property>
+            <Property name="text" type="java.lang.String" resourceKey="mnuPaste.text"/>
+            <Property name="name" type="java.lang.String" value="mnuPaste" noResource="true"/>
+          </Properties>
+        </MenuItem>
+      </SubComponents>
     </Container>
   </NonVisualComponents>
   <Properties>

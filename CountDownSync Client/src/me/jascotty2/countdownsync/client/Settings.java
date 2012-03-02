@@ -34,6 +34,7 @@ public class Settings {
 	File tickSound, clickSound;
 
 	public Settings() {
+		boolean change = false;
 		savefolder = System.getenv("APPDATA") + "\\CountDownSync\\";
 		settingsFile = new Property(savefolder + "settings.ini");
 		tickSound = new File(savefolder + "sound99.wav");
@@ -56,7 +57,7 @@ public class Settings {
 			if (!settingsFile.keyExists("usetick")) {
 				settingsFile.set("usetick", true);
 			}
-			settingsFile.save();
+			change = true;
 		} else {
 			tickSound = sound;
 		}
@@ -64,24 +65,37 @@ public class Settings {
 				? new File(settingsFile.getString("doneSound")) : null;
 		if (!settingsFile.keyExists("doneSound") || (sound2 != null && !sound2.exists())) {
 			settingsFile.set("doneSound", clickSound.getAbsolutePath());
-			settingsFile.save();
+			change = true;
 		} else {
 			clickSound = sound2;
+		}
+
+		File findWOT = new File(savefolder + "GetWOT.exe");
+		if (!findWOT.exists()) {
+			extractResource("GetWOT.exe", findWOT);
+		}
+
+		if (!settingsFile.keyExists("useWorkaround")) {
+			settingsFile.set("useWorkaround", false);
+			change = true;
+		}
+		if (change) {
+			settingsFile.save();
 		}
 	}
 
 	public Property getSettings() {
 		return settingsFile;
 	}
-	
+
 	public File getTickSound() {
 		return tickSound;
 	}
-	
+
 	public File getDoneSound() {
 		return clickSound;
 	}
-	
+
 	public void save() {
 		settingsFile.save();
 	}

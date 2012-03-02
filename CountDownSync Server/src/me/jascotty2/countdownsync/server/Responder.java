@@ -91,6 +91,13 @@ public class Responder implements Observer {
 					addNew(id, c);
 					sendList(id);
 				}
+			} else if (action.equals("ver")) {
+				ClientData c = list.get(id);
+				if (c == null) {
+					Logger.getAnonymousLogger().log(Level.WARNING, "Error: version update from unregistered client", new Exception());
+					return;
+				}
+				c.version = msg;
 			} else if (action.equals("leader")) {
 				ClientData c = list.get(id);
 				if (c == null) {
@@ -112,34 +119,35 @@ public class Responder implements Observer {
 					return;
 				}
 				boolean b = Boolean.parseBoolean(msg);
-				if(c.ready != b) {
+				if (c.ready != b) {
 					c.ready = b;
 					sendUpdate(c);
 				}
 			} else if (action.equals("refresh")) {
 				sendList(id);
-			} else if (action.equals("search")) {
-				ClientData c = list.get(id);
-				if (c == null) {
-					Logger.getAnonymousLogger().log(Level.WARNING, "Error: search command from unregistered client", new Exception());
-					return;
-				}
-				if(!c.isLeader) {
-					server.sendMessage("nosearch", id);
-				} else {
-					for (Map.Entry<Integer, ClientData> e : list.entrySet()) {
-						if(e.getValue().nick.equalsIgnoreCase(msg)) {
-							if (!e.getValue().isLeader && e.getValue().leader.equalsIgnoreCase(c.nick)) {
-								server.sendMessage("search", e.getKey());
-							} else {
-								server.sendMessage("nosearch", id);
-							}
-							return;
-						}
-					}
-					server.sendMessage("nosearch", id);
-				}
-			}
+			} 
+//			else if (action.equals("search")) {
+//				ClientData c = list.get(id);
+//				if (c == null) {
+//					Logger.getAnonymousLogger().log(Level.WARNING, "Error: search command from unregistered client", new Exception());
+//					return;
+//				}
+//				if (!c.isLeader) {
+//					server.sendMessage("nosearch", id);
+//				} else {
+//					for (Map.Entry<Integer, ClientData> e : list.entrySet()) {
+//						if (e.getValue().nick.equalsIgnoreCase(msg)) {
+//							if (!e.getValue().isLeader && e.getValue().leader.equalsIgnoreCase(c.nick)) {
+//								server.sendMessage("search", e.getKey());
+//							} else {
+//								server.sendMessage("nosearch", id);
+//							}
+//							return;
+//						}
+//					}
+//					server.sendMessage("nosearch", id);
+//				}
+//			}
 		} catch (Throwable t) {
 			Logger.getAnonymousLogger().log(Level.SEVERE, "Unexpected Error: " + t.getMessage(), t);
 		}

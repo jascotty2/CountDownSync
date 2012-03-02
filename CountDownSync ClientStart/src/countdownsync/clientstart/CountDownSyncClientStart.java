@@ -31,7 +31,7 @@ import java.util.logging.Logger;
 
 public class CountDownSyncClientStart {
 	
-	static final String VERSION = "1.1.0";
+	static final String VERSION = "1.2";
 
 	public static void main(String[] args) throws IOException {
 		String savefolder = System.getenv("APPDATA") + "\\CountDownSync\\";
@@ -55,7 +55,7 @@ public class CountDownSyncClientStart {
 				File verFile = new File(savefolder + "VERSION");
 				Scanner in = new Scanner(verFile);
 				String v = in.nextLine().trim();
-				if(versionHigher(v, VERSION)) {
+				if(true || versionHigher(v, VERSION)) {
 					System.out.println("updating older version");
 					extractResource("CountDownSync Client.jar", f, true);
 				}
@@ -129,7 +129,7 @@ public class CountDownSyncClientStart {
 		if (dest.isDirectory()) {
 			String fn = new File(fname).getName();
 			of = new File(dest, fn);
-		} else if (of.exists() && !of.isFile()) {
+		} else if (dest.exists() && !dest.isFile()) {
 			return;
 		}
 

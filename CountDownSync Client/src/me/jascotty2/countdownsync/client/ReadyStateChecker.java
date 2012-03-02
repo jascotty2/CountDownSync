@@ -20,12 +20,13 @@ package me.jascotty2.countdownsync.client;
 import java.awt.Point;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JOptionPane;
 
 public class ReadyStateChecker implements Runnable {
 
 	Thread thread = null;
 	SyncClient client;
-	protected boolean is_ready = false, found = false;
+	protected boolean is_ready = false;
 
 	public ReadyStateChecker(SyncClient client) {
 		this.client = client;
@@ -50,44 +51,38 @@ public class ReadyStateChecker implements Runnable {
 		}
 	}
 	
-	protected void extensiveScan() {
-		Thread tick = new Thread() {
-
-			@Override
-			public void run() {
-				java.awt.Point pt = FindButton.findPoint(true);
-				if(pt.x >= 0) {
-					client.sendReady(is_ready = true);
-				}
-			}
-		};
-		tick.start();
-	}
-
 	@Override
 	public void run() {
 		try {
+//			int count = 0;
 			while (true) {
-				Thread.sleep(2000);
-				if (!FindButton.still_is_button()) {
-					if (!found) {
-						Point pt = FindButton.findPoint();
-						if (pt.x > 0) {
-							found = true;
-							if (!is_ready) {
-								client.sendReady(is_ready = true);
+				boolean workaround = client.app.conf.getSettings().getBool("useWorkaround");
+				Thread.sleep(workaround ? 10000 : 2000);
+				if (!client.app.in_countdown) {
+					if (!FindButton.still_is_button(workaround)) {
+						if (!FindButton.positive_found) {
+							Point pt = FindButton.findPoint(workaround);
+							if (pt.x > 0) {
+								if (!is_ready) {
+									client.sendReady(is_ready = true);
+								}
+							} else if (is_ready) {
+								client.sendReady(is_ready = false);
 							}
 						} else if (is_ready) {
 							client.sendReady(is_ready = false);
 						}
-					} else if (is_ready) {
-						client.sendReady(is_ready = false);
+					} else if (!is_ready) {
+						client.sendReady(is_ready = true);
 					}
-				} else if (!is_ready) {
-					client.sendReady(is_ready = true);
 				}
 			}
 		} catch (InterruptedException ex) {
+		} catch (Throwable t) {
+			Logger.getLogger(CountDownSyncClientApp.class.getName()).log(Level.SEVERE, 
+					"Unexpected Error in Button Scan: " + t.getMessage(), t);
+			JOptionPane.showMessageDialog(client.app.getFrame(), "Unexpected Error in Button Scan: " + t.getMessage(),
+					"Program Error", JOptionPane.ERROR_MESSAGE);
 		}
 		thread = null;
 	}

@@ -20,6 +20,10 @@ package me.jascotty2.countdownsync.client;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Image;
+import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.StringSelection;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -39,6 +43,7 @@ import javax.swing.Icon;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
+import javax.swing.JTextField;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.PlainDocument;
@@ -48,7 +53,7 @@ import javax.swing.text.PlainDocument;
  */
 public class CountDownSyncClientView extends FrameView {
 
-	static final String VERSION = "1.1.0";
+	static final String VERSION = "1.2";
 	static final int MAXNAMELEN = 15;
 	SyncClient client;
 	Settings conf = new Settings();
@@ -56,6 +61,9 @@ public class CountDownSyncClientView extends FrameView {
 	CountDownThread countdown = new CountDownThread(this);
 	ReadyStateChecker checker;
 	String nickname;
+	Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+	int clickedField = 0; // for copy/paste menu
+	boolean in_countdown = false;
 
 	public CountDownSyncClientView(SingleFrameApplication app) {
 		super(app);
@@ -82,19 +90,8 @@ public class CountDownSyncClientView extends FrameView {
 		}
 		txtServer.setText(conf.getSettings().getString("lastServer"));
 		txtNick.setText(conf.getSettings().getString("nickname"));
+		mnuChkWorkaround.setState(conf.getSettings().getBool("useWorkaround"));
 
-//		btnRefresh = new javax.swing.JButton();
-//		btnRefresh.setSize(15, 15);
-//		btnRefresh.setLocation(50, 50);
-//		super.getFrame().add(btnRefresh);
-		
-		javax.swing.JButton btnForceSearch = new javax.swing.JButton();
-		btnForceSearch.setAction(org.jdesktop.application.Application.getInstance(
-				me.jascotty2.countdownsync.client.CountDownSyncClientApp.class).
-				getContext().getActionMap(CountDownSyncClientView.class, this).get("requestClientUpdate"));
-		btnForceSearch.setText("Search for Button");
-		clientPopupMenu.add(btnForceSearch);
-		
 		// status bar initialization - message timeout, idle icon and busy animation, etc
 		ResourceMap resourceMap = getResourceMap();
 		int messageTimeout = resourceMap.getInteger("StatusBar.messageTimeout");
@@ -160,6 +157,15 @@ public class CountDownSyncClientView extends FrameView {
 			fos.close();
 		} catch (Exception e) {
 		}
+		// set findWOT exe
+		FindButton.setFindWOT(conf.savefolder + "GetWOT.exe");
+		// save settings on close
+		Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
+
+			public void run() {
+				conf.save();
+			}
+		}));
 	}
 
 	@Action
@@ -168,6 +174,7 @@ public class CountDownSyncClientView extends FrameView {
 			JFrame mainFrame = CountDownSyncClientApp.getApplication().getMainFrame();
 			aboutBox = new CountDownSyncClientAboutBox(mainFrame);
 			aboutBox.setLocationRelativeTo(mainFrame);
+			aboutBox.setTitle("About: CountDownSync " + VERSION);
 		}
 		CountDownSyncClientApp.getApplication().show(aboutBox);
 	}
@@ -207,7 +214,7 @@ public class CountDownSyncClientView extends FrameView {
 			lblStat.setText("Connected.");
 			mnuDisconnect.setEnabled(true);
 			mnuRefresh.setEnabled(true);
-			
+
 			client.setNickname(txtNick.getText());
 
 		} catch (Exception e) {
@@ -220,6 +227,7 @@ public class CountDownSyncClientView extends FrameView {
 
 	@Action
 	public void selectCurrent() {
+		clientPopupMenu.setVisible(false);
 		if (nickname == null) {
 			return;
 		}
@@ -228,7 +236,8 @@ public class CountDownSyncClientView extends FrameView {
 			if (clients.getClient(i).nick.equals(nickname)) {
 				lblLeaderName.setForeground(
 						org.jdesktop.application.Application.getInstance(
-						me.jascotty2.countdownsync.client.CountDownSyncClientApp.class).getContext().getResourceMap(CountDownSyncClientView.class).getColor("lblLeaderName.foreground"));
+						me.jascotty2.countdownsync.client.CountDownSyncClientApp.class).getContext().
+						getResourceMap(CountDownSyncClientView.class).getColor("lblLeaderName.foreground"));
 				lblLeaderName.setText("(you are leader)");
 				btnStart.setVisible(true);
 				client.setLeader(null);
@@ -249,6 +258,30 @@ public class CountDownSyncClientView extends FrameView {
 			lstClients.clearSelection();
 			btnSelect.setEnabled(false);
 		}
+	}
+
+	@Action
+	public void selectSelf() {
+		clientPopupMenu.setVisible(false);
+		if (nickname == null) {
+			return;
+		}
+		lblLeaderName.setForeground(
+				org.jdesktop.application.Application.getInstance(
+				me.jascotty2.countdownsync.client.CountDownSyncClientApp.class).getContext().
+				getResourceMap(CountDownSyncClientView.class).getColor("lblLeaderName.foreground"));
+		lblLeaderName.setText("(you are leader)");
+		btnStart.setVisible(true);
+		client.setLeader(null);
+		lstClients.clearSelection();
+		btnSelect.setEnabled(false);
+	}
+
+	@Action
+	public void clearSelect() {
+		lstClients.clearSelection();
+		btnSelect.setEnabled(false);
+		clientPopupMenu.setVisible(false);
 	}
 
 	public void setStatus(String msg) {
@@ -280,20 +313,19 @@ public class CountDownSyncClientView extends FrameView {
 		client.requestUpdate();
 	}
 
+//	@Action
+//	public void requestClientUpdate() {
+//		clientPopupMenu.setVisible(false);
+//		int i = lstClients.getSelectedIndex();
+//		if (i >= 0) {
+//			client.sendForceUpdate(clients.getClient(i).nick);
+//		}
+//	}
+//	public void noRequestClientUpdate() {
+//		JOptionPane.showMessageDialog(this.getFrame(), "can only run that command on a follower client",
+//				"Disallowed", JOptionPane.ERROR_MESSAGE);
+//	}
 	@Action
-	public void requestClientUpdate() {
-		clientPopupMenu.setVisible(false);
-		int i = lstClients.getSelectedIndex();
-		if (i >= 0) {
-			client.sendForceUpdate(clients.getClient(i).nick);
-		}
-	}
-	
-	public void noRequestClientUpdate() {
-		JOptionPane.showMessageDialog(this.getFrame(), "can only run that command on a follower client",
-					"Disallowed", JOptionPane.ERROR_MESSAGE);
-	}
-	
 	public void updateList() {
 		lstClients.removeAll();
 		lstClients.setListData(clients.getList());
@@ -309,6 +341,7 @@ public class CountDownSyncClientView extends FrameView {
 
 	public void startCount(int sec) {
 		countdown.start(sec);
+		in_countdown = true;
 	}
 
 	public void click() {
@@ -316,7 +349,10 @@ public class CountDownSyncClientView extends FrameView {
 		FindButton.clickButton();
 		btnStart.setEnabled(true);
 		lblStat.setText("Connected.");
+		in_countdown = false;
 		FindButton.scr.save(new File(conf.savefolder + "btnImg.png"));
+		FindButton.scr.screenCap();
+		FindButton.scr.save(new File(conf.savefolder + "scr.png"));
 	}
 
 	public void reconnected() {
@@ -363,6 +399,56 @@ public class CountDownSyncClientView extends FrameView {
 		}
 	}
 
+	@Action
+	public void paste() {
+		try {
+			JTextField txt;
+			switch (clickedField) {
+				case 0: // txtServer
+					txt = txtServer;
+					break;
+				case 1: // txtNick
+					txt = txtNick;
+					break;
+				default:
+					return;
+			}
+			String str = txt.getText(), clip = clipboard.getData(DataFlavor.stringFlavor).toString();
+			if (clip.contains("\n")) {
+				clip = clip.substring(0, clip.indexOf("\n"));
+			}
+
+			if (txt.getSelectionStart() >= 0) {
+				str = str.substring(0, txt.getSelectionStart())
+						+ clip
+						+ str.substring(txt.getSelectionEnd());
+			} else {
+				str = clipboard.getData(DataFlavor.stringFlavor).toString();
+			}
+
+			txt.setText(str);
+
+		} catch (Exception ex) {
+			Logger.getLogger(CountDownSyncClientView.class.getName()).log(Level.SEVERE, null, ex);
+		}
+	}
+
+	@Action
+	public void copy() {
+		switch (clickedField) {
+			case 0: // txtServer
+				clipboard.setContents(new StringSelection(txtServer.getSelectedText()), null);
+				break;
+			case 1: // txtNick
+				clipboard.setContents(new StringSelection(txtNick.getSelectedText()), null);
+		}
+	}
+	
+	@Action
+	public void chkWorkaroundChanged() {
+		conf.getSettings().set("useWorkaround", mnuChkWorkaround.getState());
+	}
+
 	/** This method is called from within the constructor to
 	 * initialize the form.
 	 * WARNING: Do NOT modify this code. The content of this method is
@@ -390,12 +476,21 @@ public class CountDownSyncClientView extends FrameView {
         mnuDisconnect = new javax.swing.JMenuItem();
         mnuRefresh = new javax.swing.JMenuItem();
         javax.swing.JMenuItem exitMenuItem = new javax.swing.JMenuItem();
+        mnuOptions = new javax.swing.JMenu();
+        mnuChkWorkaround = new javax.swing.JCheckBoxMenuItem();
         javax.swing.JMenu helpMenu = new javax.swing.JMenu();
         javax.swing.JMenuItem aboutMenuItem = new javax.swing.JMenuItem();
         statusPanel = new javax.swing.JPanel();
         lblStat = new javax.swing.JLabel();
         lblProg = new javax.swing.JLabel();
         clientPopupMenu = new javax.swing.JPopupMenu();
+        mnuSelect2 = new javax.swing.JMenuItem();
+        mnuSelectSelf = new javax.swing.JMenuItem();
+        mnuCls = new javax.swing.JMenuItem();
+        mnuRedraw = new javax.swing.JMenuItem();
+        copyPastePopup = new javax.swing.JPopupMenu();
+        mnuCopy = new javax.swing.JMenuItem();
+        mnuPaste = new javax.swing.JMenuItem();
 
         mainPanel.setName("mainPanel"); // NOI18N
 
@@ -409,10 +504,20 @@ public class CountDownSyncClientView extends FrameView {
         txtServer.setText(resourceMap.getString("txtServer.text")); // NOI18N
         txtServer.setName("txtServer"); // NOI18N
         txtServer.setNextFocusableComponent(txtNick);
+        txtServer.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                txtServerMouseClicked(evt);
+            }
+        });
 
         txtNick.setText(resourceMap.getString("txtNick.text")); // NOI18N
         txtNick.setName("txtNick"); // NOI18N
         txtNick.setNextFocusableComponent(btnConnect);
+        txtNick.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                txtNickMouseClicked(evt);
+            }
+        });
 
         javax.swing.ActionMap actionMap = org.jdesktop.application.Application.getInstance(me.jascotty2.countdownsync.client.CountDownSyncClientApp.class).getContext().getActionMap(CountDownSyncClientView.class, this);
         btnConnect.setAction(actionMap.get("connect")); // NOI18N
@@ -531,6 +636,18 @@ public class CountDownSyncClientView extends FrameView {
 
         menuBar.add(fileMenu);
 
+        mnuOptions.setText(resourceMap.getString("mnuOptions.text")); // NOI18N
+        mnuOptions.setToolTipText(resourceMap.getString("mnuOptions.toolTipText")); // NOI18N
+        mnuOptions.setName("mnuOptions"); // NOI18N
+
+        mnuChkWorkaround.setAction(actionMap.get("chkWorkaroundChanged")); // NOI18N
+        mnuChkWorkaround.setText(resourceMap.getString("mnuChkWorkaround.text")); // NOI18N
+        mnuChkWorkaround.setToolTipText(resourceMap.getString("mnuChkWorkaround.toolTipText")); // NOI18N
+        mnuChkWorkaround.setName("mnuChkWorkaround"); // NOI18N
+        mnuOptions.add(mnuChkWorkaround);
+
+        menuBar.add(mnuOptions);
+
         helpMenu.setText(resourceMap.getString("helpMenu.text")); // NOI18N
         helpMenu.setName("helpMenu"); // NOI18N
 
@@ -571,6 +688,38 @@ public class CountDownSyncClientView extends FrameView {
 
         clientPopupMenu.setName("clientPopupMenu"); // NOI18N
 
+        mnuSelect2.setAction(actionMap.get("selectCurrent")); // NOI18N
+        mnuSelect2.setText(resourceMap.getString("mnuSelect2.text")); // NOI18N
+        mnuSelect2.setName("mnuSelect2"); // NOI18N
+        clientPopupMenu.add(mnuSelect2);
+
+        mnuSelectSelf.setAction(actionMap.get("selectSelf")); // NOI18N
+        mnuSelectSelf.setText(resourceMap.getString("mnuSelectSelf.text")); // NOI18N
+        mnuSelectSelf.setName("mnuSelectSelf"); // NOI18N
+        clientPopupMenu.add(mnuSelectSelf);
+
+        mnuCls.setAction(actionMap.get("clearSelect")); // NOI18N
+        mnuCls.setText(resourceMap.getString("mnuCls.text")); // NOI18N
+        mnuCls.setName("mnuCls"); // NOI18N
+        clientPopupMenu.add(mnuCls);
+
+        mnuRedraw.setAction(actionMap.get("updateList")); // NOI18N
+        mnuRedraw.setText(resourceMap.getString("mnuRedraw.text")); // NOI18N
+        mnuRedraw.setName("mnuRedraw"); // NOI18N
+        clientPopupMenu.add(mnuRedraw);
+
+        copyPastePopup.setName("copyPastePopup"); // NOI18N
+
+        mnuCopy.setAction(actionMap.get("copy")); // NOI18N
+        mnuCopy.setText(resourceMap.getString("mnuCopy.text")); // NOI18N
+        mnuCopy.setName("mnuCopy"); // NOI18N
+        copyPastePopup.add(mnuCopy);
+
+        mnuPaste.setAction(actionMap.get("paste")); // NOI18N
+        mnuPaste.setText(resourceMap.getString("mnuPaste.text")); // NOI18N
+        mnuPaste.setName("mnuPaste"); // NOI18N
+        copyPastePopup.add(mnuPaste);
+
         setComponent(mainPanel);
         setMenuBar(menuBar);
         setStatusBar(statusPanel);
@@ -581,16 +730,44 @@ public class CountDownSyncClientView extends FrameView {
 	}//GEN-LAST:event_lstClientsValueChanged
 
 	private void lstClientsMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_lstClientsMouseClicked
-		if(evt.getButton() == MouseEvent.BUTTON3) {
+		if (evt.getButton() == MouseEvent.BUTTON3) {
 			clientPopupMenu.show(lstClients, evt.getX(), evt.getY());
 		}
 	}//GEN-LAST:event_lstClientsMouseClicked
 
+	private void txtServerMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_txtServerMouseClicked
+		if (evt.getButton() == MouseEvent.BUTTON3) {
+			try {
+				mnuCopy.setEnabled(!txtServer.getSelectedText().isEmpty());
+				mnuPaste.setEnabled(clipboard.getData(DataFlavor.stringFlavor) != null);
+			} catch (Exception ex) {
+				Logger.getLogger(CountDownSyncClientView.class.getName()).log(Level.SEVERE, null, ex);
+				return;
+			}
+			clickedField = 0;
+			copyPastePopup.show(txtServer, evt.getX(), evt.getY());
+		}
+	}//GEN-LAST:event_txtServerMouseClicked
+
+	private void txtNickMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_txtNickMouseClicked
+		if (evt.getButton() == MouseEvent.BUTTON3) {
+			try {
+				mnuCopy.setEnabled(txtNick.getSelectedText() != null);
+				mnuPaste.setEnabled(clipboard.getData(DataFlavor.stringFlavor) != null);
+			} catch (Exception ex) {
+				Logger.getLogger(CountDownSyncClientView.class.getName()).log(Level.SEVERE, null, ex);
+				return;
+			}
+			clickedField = 1;
+			copyPastePopup.show(txtNick, evt.getX(), evt.getY());
+		}
+	}//GEN-LAST:event_txtNickMouseClicked
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnConnect;
     private javax.swing.JButton btnSelect;
     private javax.swing.JButton btnStart;
     private javax.swing.JPopupMenu clientPopupMenu;
+    private javax.swing.JPopupMenu copyPastePopup;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JLabel lblLeader;
     private javax.swing.JLabel lblLeaderName;
@@ -601,8 +778,16 @@ public class CountDownSyncClientView extends FrameView {
     private javax.swing.JList lstClients;
     private javax.swing.JPanel mainPanel;
     private javax.swing.JMenuBar menuBar;
+    private javax.swing.JCheckBoxMenuItem mnuChkWorkaround;
+    private javax.swing.JMenuItem mnuCls;
+    private javax.swing.JMenuItem mnuCopy;
     private javax.swing.JMenuItem mnuDisconnect;
+    private javax.swing.JMenu mnuOptions;
+    private javax.swing.JMenuItem mnuPaste;
+    private javax.swing.JMenuItem mnuRedraw;
     private javax.swing.JMenuItem mnuRefresh;
+    private javax.swing.JMenuItem mnuSelect2;
+    private javax.swing.JMenuItem mnuSelectSelf;
     private javax.swing.JProgressBar progressBar;
     private javax.swing.JPanel statusPanel;
     private javax.swing.JTextField txtNick;

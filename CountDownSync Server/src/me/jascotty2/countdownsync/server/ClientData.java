@@ -19,10 +19,10 @@ package me.jascotty2.countdownsync.server;
 
 public class ClientData {
 
-	public String nick, leader="";
+	public String nick, leader = "", version = null;
 	boolean isLeader = true;
 	boolean ready = false;
-	
+
 	public ClientData() {
 	}
 
@@ -34,5 +34,4 @@ public class ClientData {
 	public String toString() {
 		return nick + "," + leader + "," + isLeader + "," + ready;
 	}
-	
 }

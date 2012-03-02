@@ -23,6 +23,7 @@ import java.awt.Toolkit;
 import java.awt.Canvas;
 import java.awt.Graphics;
 
+import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -32,50 +33,65 @@ import javax.imageio.ImageIO;
 
 public class CaptureScreen extends Canvas {
 
-	static Rectangle screenRectangle = new Rectangle(Toolkit.getDefaultToolkit().getScreenSize()); //1152, 864);//
-	Robot myRobot;
+	Robot robot;
 	BufferedImage screenImage;
 
 	public CaptureScreen() {
 		try {
-			myRobot = new Robot();
+			robot = new Robot();
 		} catch (Exception exception) {
 			exception.printStackTrace();
 		}
 	}
 
+	public Rectangle getScreenRes() {
+		return new Rectangle(Toolkit.getDefaultToolkit().getScreenSize());
+	}
+
 	public BufferedImage screenCap() {
-		screenRectangle = new Rectangle(Toolkit.getDefaultToolkit().getScreenSize());
-		return screenImage = myRobot.createScreenCapture(screenRectangle);
+		return screenImage = robot.createScreenCapture(getScreenRes());
 	}
 
 	public BufferedImage screenCap(Rectangle r) {
-//		try {
-//			screenImage = javax.imageio.ImageIO.read(new File("D:\\Jacob\\Programs\\Java\\CountDownSync Client\\shot_001.jpg"));
-//			BufferedImage img = new BufferedImage(r.width, r.height, screenImage.getType());
-//			for(int x = r.x; x < r.x + r.width; ++x) {
-//				for(int y = r.y; y < r.y + r.height; ++y) {
-//					img.setRGB(x - r.x, y - r.y, screenImage.getRGB(x, y));
-//				}
-//			}
-//			return screenImage = img;
-//		} catch (IOException ex) {
-//			Logger.getLogger(CaptureScreen.class.getName()).log(Level.SEVERE, null, ex);
-//		}
-		return screenImage = myRobot.createScreenCapture(r);
+		return screenImage = robot.createScreenCapture(r);
+	}
+
+	public void sendPrintScr() {
+		robot.keyPress(KeyEvent.VK_PRINTSCREEN);
+		robot.delay(200);
+		robot.keyRelease(KeyEvent.VK_PRINTSCREEN);
+	}
+
+	public BufferedImage loadFromFile(File f) {
+		return loadFromFile(f, null);
+	}
+
+	public BufferedImage loadFromFile(File f, Rectangle r) {
+		try {
+			screenImage = javax.imageio.ImageIO.read(f);
+			if (r != null) {
+				return screenImage = subImage(screenImage, r);
+			} else {
+			}
+		} catch (IOException ex) {
+			Logger.getLogger(CaptureScreen.class.getName()).log(Level.SEVERE, null, ex);
+			screenImage = null;
+		}
+		return screenImage;
 	}
 
 	public void save(File sv) {
+		System.out.println(sv.getAbsoluteFile());
 		try {
 			// create a graphics context from the BufferedImage and draw the icon's image into it.
 			Graphics g = screenImage.createGraphics();
 			g.drawImage(screenImage, 0, 0, null);
 			g.dispose();
-			
-			if(!sv.getAbsolutePath().toLowerCase().endsWith(".png")) {
+
+			if (!sv.getAbsolutePath().toLowerCase().endsWith(".png")) {
 				sv = new File(sv.getAbsolutePath() + ".png");
 			}
-			
+
 			sv.createNewFile();
 			ImageIO.write(screenImage, "png", sv);
 		} catch (IOException ex) {
@@ -87,6 +103,21 @@ public class CaptureScreen extends Canvas {
 	public void paint(Graphics g) {
 		g.drawImage(screenImage, 0, 0, this);
 	}
+	
+	public static BufferedImage subImage(BufferedImage img, Rectangle r) {
+		if(img == null || r == null) {
+			throw new NullPointerException("Error: null");
+		}
+		BufferedImage sv = new BufferedImage(r.width, r.height, img.getType());
+		for (int x = r.x; x < r.x + r.width && x < img.getWidth(); ++x) {
+			for (int y = r.y; y < r.y + r.height && y < img.getHeight(); ++y) {
+				sv.setRGB(x - r.x, y - r.y, img.getRGB(x, y));
+			}
+		}
+		return sv;
+	}
+	
+	
 //	public static void main(String[] args) {
 //		CaptureScreen cs = new CaptureScreen();
 //		

@@ -138,8 +138,8 @@ public class CountDownSyncClientAboutBox extends javax.swing.JDialog {
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel appTitleLabel = new javax.swing.JLabel();
-    private javax.swing.JLabel versionLabel = new javax.swing.JLabel();
     private javax.swing.JLabel appVersionLabel = new javax.swing.JLabel();
+    private javax.swing.JLabel versionLabel = new javax.swing.JLabel();
     private javax.swing.JLabel vendorLabel = new javax.swing.JLabel();
     private javax.swing.JLabel appVendorLabel = new javax.swing.JLabel();
     private javax.swing.JLabel homepageLabel = new javax.swing.JLabel();
